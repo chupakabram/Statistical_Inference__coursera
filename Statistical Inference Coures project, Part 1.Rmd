@@ -1,0 +1,228 @@
+---
+title: "Statistical Inference Coures project, Part 1"
+author: "oleg.reznychenko@gmail.com"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: pdf_document
+documentclass: article
+classoption: a4paper
+font: Courier
+fontsize: 11pt
+geometry: margin=0.4in
+---
+
+##Objectives overview: 
+The objective is to investigate the distribution of averages of a number exponentials. The report contains of computer simulation of exponential distributed random variable, the sample mean and variance calculation and obtainig  the distribution of a large collection of averages of a number exponentials.  
+
+##Simulation:
+The exponential random variables were generated using command:
+```{r eval=FALSE, tidy=FALSE}
+exponential_randoms <- rexp(n, lambda)    # n- number of randoms, lamda-parameter of distibition
+exprand_mean <- mean(exponential_randoms) # obtain the sample mean
+exprand_var <- mean(exponential_randoms)  # obtain the sample variance
+theory_mean <- 1/lmbd                     # calculate theoretical values of mean and variance
+theory_var <- 1/lmbd^2
+```
+
+To calculate average of the sample of exponential randoms the next code was used:
+```{r eval=FALSE, tidy=FALSE}
+mns <- array(0, c(n))
+for (i in 1:n) mns[i] = mean(rexp(sampleN, lmbd)); # generate 'sampleN' elements n times
+samples_mns_mean <- mean(mns)
+samples_mns_var <- var(mns)
+salmpes_mns_theory_var <- theory_var/sampleN
+```
+
+```{r, fig.width=8, fig.height=4, echo=FALSE}
+# function to perform statistical experiment
+experiment1 <- function(lmbd, n) {
+  # generate 'n' random variables
+  rn_vals <- rexp(n, lmbd) 
+  
+  # calculate sample mean and variation
+  mn_exprm <- mean(rn_vals);
+  var_exprm <-var(rn_vals);
+  sd_exprm <- sqrt(var_exprm);
+    
+  # calculate 'theoretical' mean and variation 
+  mn_theor <- 1/lmbd
+  var_theor <- 1/(lmbd^2)
+  sd_theor <- sqrt(var_theor)
+
+  list( rn_vals            = rn_vals,  
+        mn_exprm           = mn_exprm,
+        var_exprm          = var_exprm,
+        sd_exprm           = sd_exprm,
+        mn_theor           = mn_theor,
+        var_theor          = var_theor,
+        sd_theor           = sd_theor)
+}
+
+# function to perform statistical experiment with samples
+experiment2 <- function(sampleN, lmbd, n) {
+  
+  # generate sample of 'sampleN' variables 'n' times
+  # and store mean 
+  mns <- array(0, c(n))
+  for (i in 1:n) mns[i] = mean(rexp(sampleN, lmbd));   
+  
+  # calculate 'theoretical' mean and variation 
+  mn_theor <- 1/lmbd
+  var_theor <- 1/(lmbd^2)
+  sd_theor <- sqrt(var_theor)
+
+  # calculate both 'theoretical' and 'experimantal'
+  # mean and variation for samples
+  mn_mns <- mean(mns)
+  var_mns <- var(mns)
+  sd_mns <- sqrt(var_mns)
+  var_mns_theor <- var_theor/sampleN
+  sd_mns_theor <- sqrt(var_mns_theor)
+  
+  list( mns                = mns,
+        mn_theor           = mn_theor,
+        var_theor          = var_theor,
+        sd_theor           = sd_theor,
+        mn_mns             = mn_mns,
+        var_mns            = var_mns,
+        sd_mns             = sd_mns,
+        var_mns_theor      = var_mns_theor,
+        sd_mns_theor       = sd_mns_theor )
+}
+
+# plot histogram of 'full sample'
+histogramExp <- function(figNo,lmbd, n, rn_vals, mn_exprm, mn_theor) {
+  hist(rn_vals, main=paste('Fig.', format(figNo),'. Histogram of ', format(n,6),' random exponential'), col="palegreen", xlim=c(0,40), xlab=substitute(paste("Random value, PDF = ", lambda*e^{-lambda*x},", ",lambda, "=",lm), list(lm = lmbd)));
+       
+  abline(v=mn_exprm,col="red")
+  abline(v=mn_theor, col='blue')
+  
+  SampleMeanStr <- paste("Sample mean = ", format(mn_exprm,digits=7));
+  TheoryMeanStr <- paste("Theoretical mean =",format(mn_theor,digits=7));
+  legend("topright", inset=.05, c(SampleMeanStr,TheoryMeanStr), fill = c("red", "blue"), horiz=FALSE)
+}
+
+# plot histogram of 'sample means experiment'
+histogramMns <- function(figNo,lmbd, n, sampleN, mns, mn_mns, mn_theor, sd_mns_theor) {
+  hist(mns, main = paste('Fig.',format(figNo),'. Histogram of ', format(sampleN),' random exponential \nmeans for ', format(n,6),' experiments'),
+     xlab = "Value of the mean", ylim = c(0,0.6), col="ivory", freq=FALSE, breaks = 16);
+
+  curve(dnorm(x, mean=mn_theor, sd=sd_mns_theor), add=TRUE, col="orange", lwd=2)
+  lines(density(mns), col='green')
+
+  abline(v=mn_mns,col="red")
+  abline(v=mn_theor, col='blue')
+  
+  SampleMeanStr <- paste("Sample mean = ", format(mn_mns,digits=7));
+  TheoryMeanStr <- paste("Theoretical mean =",format(mn_theor,digits=7));
+  legend("topright", inset=.01, legend=c(SampleMeanStr,TheoryMeanStr,"Sample density","Theoretical density"), 
+       fill = c("red", "blue", "green","orange"), horiz=FALSE)
+}
+
+# ------------------------------------------------------------------
+
+n_list <- c(10000, 20000, 40000, 50000, 60000, 70000);
+lmbd <- 0.2;
+
+plotNum <- 1;
+drawPlot <- array(0, c(length(n_list)));
+drawPlot[1] <- TRUE;
+drawPlot[(length(n_list))] <- TRUE;
+
+# create empty data frame to store results
+expResArrDf <- data.frame(NExp = numeric(),
+                          MeanExp = numeric(), 
+                          MeanTheor = numeric(),
+                          VarExp = numeric(),
+                          VarTheor = numeric(),
+                          stringsAsFactors=FALSE);
+
+colnames <- names(expResArrDf);
+```
+
+Simulation was run for **n** value in range [10000 ~ 70000], $\lambda=0.2$.
+Resuts of the exponential random simulations are presented on histograms Fig.1. and Fig.2, and in Table 1.
+
+```{r, fig.width=8, fig.height=5, echo=FALSE}
+
+for (i in (1:length(n_list))){
+  ES1 <- experiment1(lmbd,n_list[i]);
+  
+  # append result of the experiment
+  expResArrDf <- rbind(expResArrDf,c(n_list[i], ES1$mn_exprm, ES1$mn_theor, ES1$var_exprm, ES1$var_theor));
+    
+  if (drawPlot[i]){
+    histogramExp(plotNum, lmbd, n_list[i], ES1$rn_vals,ES1$mn_exprm, ES1$mn_theor )
+    plotNum <- plotNum+1;
+  }
+}
+
+names(expResArrDf) <- colnames;
+```
+
+$$Table\ 1.\ Exponential\ simulation\ experiment\ results.$$
+
+```{r createtable1, results='asis', echo=FALSE}
+cat(paste("Number of random values","Sample Mean","Theoretical Mean","Sample Var","Theoretical Var",sep = ' | '),paste(replicate(5,":---:"), collapse=' | '), sep="\n");
+cat(apply(expResArrDf, 1, function(X) paste(X, collapse=" | ")), sep = "\n")
+```
+
+```{r, fig.width=8, fig.height=4, echo=FALSE}
+
+sampleN_list <- c(20,30,40,50);
+n_list <- c(10000, 20000, 40000);
+lmbd <- 0.2;
+
+drawPlot <- array(0, c(length(sampleN_list), length(n_list)));
+drawPlot[1,1] <- TRUE;
+drawPlot[4,3] <- TRUE;
+
+# create empty data frame to store results
+mnsResArrDf <- data.frame(NExp = numeric(),
+                          NSample = numeric(),
+                          MeanExp = numeric(), 
+                          MeanTheor = numeric(),
+                          VarExp = numeric(),
+                          VarTheor = numeric(),
+                          stringsAsFactors=FALSE);
+
+colnames <- names(mnsResArrDf);
+```
+
+Simulation of samples average distribution was run for **n** value in range [10000 ~ 40000], **sample size** in range [20 ~ 50], $\lambda=0.2$.
+Histograms and distribution of the exponential random samples average are presented on Fig.3., Fig.4. and in Table 2. 
+
+```{r, fig.width=8, fig.height=5, echo=FALSE}
+for (j in (1:length(n_list))) {
+   for (i in (1:length(sampleN_list)))  {
+      ES2 <- experiment2(sampleN_list[i],lmbd,n_list[j]);
+      
+      # append result of the experiment
+      mnsResArrDf<- rbind(mnsResArrDf,c(n_list[j], sampleN_list[i], ES2$mn_mn, ES2$mn_theor, ES2$var_mns, ES2$var_mns_theor));
+      
+      if (drawPlot[i,j]){
+        histogramMns(plotNum, lmbd, n_list[j], sampleN_list[i], ES2$mns,ES2$mn_mns, ES2$mn_theor, ES2$sd_mns_theor )
+        plotNum <- plotNum+1;
+      }
+    }
+}
+
+names(mnsResArrDf) <- colnames;
+
+```
+
+\pagebreak
+
+$$Table\ 2.\ Average\ of\ samples\ means\ experiment\ results.$$
+
+```{r createtable2, results='asis', echo=FALSE}
+cat(paste("Experiments","Sample","Sample Mean","Theor. Mean","Sample Var","Theor. Var",sep = ' | '),paste(replicate(6,":---"), collapse=' | '), sep="\n");
+cat(apply(mnsResArrDf, 1, function(X) paste(X, collapse=" | ")), sep = "\n")
+
+```
+
+##Conclusion:   
+ - The sample average variance decreases when size of sample is growing up;
+ - As we can see the sample average distribution is pretty close to normal one, the difference between obtained and theoretical values are about 0.1%. 
+
+
+ -----------------------------------------------------------------------
