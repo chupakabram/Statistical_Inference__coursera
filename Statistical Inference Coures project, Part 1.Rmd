@@ -33,6 +33,11 @@ salmpes_mns_theory_var <- theory_var/sampleN
 ```
 
 ```{r, fig.width=8, fig.height=4, echo=FALSE}
+tseed<-as.numeric(Sys.time())
+set.seed(tseed)
+#set.seed(1423568583)
+
+
 # function to perform statistical experiment
 experiment1 <- function(lmbd, n) {
   # generate 'n' random variables
@@ -220,9 +225,37 @@ cat(apply(mnsResArrDf, 1, function(X) paste(X, collapse=" | ")), sep = "\n")
 
 ```
 
-##Conclusion:   
- - The sample average variance decreases when size of sample is growing up;
- - As we can see the sample average distribution is pretty close to normal one, the difference between obtained and theoretical values are about 0.1%. 
+**Intermediate notes**:    
+ - We see the sample average distribution is pretty close to normal one, the difference between obtained and theoretical values are about 0.1%;    
+ - With these numbers of experiments we can't evaluate the sample variance behavior, it needs further investigation. 
+ 
+ 
+Let's check whether the variation of the averages of sample is close to the theoretical one if number of experiments increases. 
+
+The following code performs the experiment calculation:
+
+```{r, fig.align='center', fig.height=6, fig.width=8}
+diff_var <- NULL;
+lambda = 0.2;
+sample = 40;
+var_theor <- (1/lambda)^2/sample;
+for (n in seq(10000, 1000000, by=10000)) {
+  re <- array(0,n);
+  for (i in (1:n)) re[i] <- mean(rexp(sample,lambda));
+  diff_var <- c(diff_var, var(re)-var_theor)
+}
+```
+
+Result of experiment is shown on Fig.5
+
+\pagebreak
+```{r, echo=FALSE, fig.align='center', fig.height=6, fig.width=8}
+plot(diff_var, main="Fig.5. Result of 40 exponential random\n average distribution", col="blue", type = 'b',
+     xlab="Number of samples, x10000", ylab = "(sample var) - (theoretical var)")
+abline(h=0, col="red")
+```
+
+**Conclusion**: As we can see the variance of sample average shows a tendency to approach to the theoretical value in accordance to CLT. 
 
 
  -----------------------------------------------------------------------
