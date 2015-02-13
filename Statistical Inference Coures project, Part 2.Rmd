@@ -23,8 +23,7 @@ summary(tg)
 t1<-rbind(c(class(tg$len), class(tg$supp), class(tg$dose)),
           c(length(unique(tg$len)), length(unique(tg$supp)), length(unique(tg$dose))));
 colnames(t1) <- names(tg);
-rownames(t1) <- c("Class of parameter", "Number of values"); 
-t1
+rownames(t1) <- c("Class of parameter", "Number of values");t1
 ```
 
 #Data analysis
@@ -44,7 +43,7 @@ We suppose:
  - the all data groups are independent;    
  - we assume the constant variation across the groups;  
  - the $\alpha$-level is usual 5%;    
- - there are `r length(tg)` rows in the data - the t-statistic should be used.     
+ - there are `r nrow(tg)` rows in the data set - the t-statistic should be used.     
  
 The null-hypothesis $H_0$ will be an assumption the two groups mean values are equal.    
 Function to calculate the 95% confidence interval to check the $H_0$:
@@ -79,16 +78,16 @@ confidence_interval95(lnBySuppOJ, lnBySuppVC)
 ttest<-t.test(lnBySuppOJ,lnBySuppVC, paired=FALSE, var.equal = TRUE);ttest
 ```
 #Conclusion of comparing tooth growth by supp:
-The p-value is `r ttest$p.value` > $\alpha$ (0.05). It means we **can not reject** $H_0$ hypothesis, i.e we can't say with full confidence the parameter **supp** affects on **len**. 
+The p-value is `r ttest$p.value`; it is small, but still greater then $\alpha$ (0.05). It means we **can not reject** $H_0$ hypothesis, i.e we can't say with full confidence the parameter **supp** affects on **len**. 
 
 #Compare tooth growth by dose:
 We create two samples, - for **dose** values > 1 and < 1 , - then draw a box plot with whiskers to illustrate the distributions of the **len** for each group (see Fig.3).
 ```{r, fig.align='center', fig.width=5, fig.height=4}
 lnByDose2 <- tg[tg$dose > 1, ]$len
 lnByDose05 <- tg[tg$dose < 1, ]$len
-boxplot(lnByDose05,lnByDose2, 
+boxplot(lnByDose2, lnByDose05,
         main="Fig.3. Boxplot of 'len' distributions by 'dose'.", 
-        names=c("Dose = 0.5", "Dose = 2.0"), col="lightgray")
+        names=c( "Dose = 2.0", "Dose = 0.5"), col="lightgray")
 
 rbind(c(mean(lnByDose2),mean(lnByDose05)),
       c(sd(lnByDose2), sd(lnByDose05)))
