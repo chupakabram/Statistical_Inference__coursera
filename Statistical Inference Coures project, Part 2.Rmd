@@ -35,7 +35,8 @@ Parameters summary:
 From the scatterplot on Fig.1. we can see the **len** does not demonstrate clear dependency of **supp** - both groups are distributed widly and they are overlapped. Three groups of **dose** seems to be 'divided' much better. 
 
 ```{r, fig.width=8, fig.height=6}
-plot(tg, main="Fig.1. Scatterplot to illustrate data dependencies.",col="blue")
+pairs(tg, main="Fig.1. Scatterplot to illustrate data dependencies.", 
+      lower.panel = panel.smooth, col="blue")
 ```
  
 #Preliminary assumptions for further analysis:
@@ -71,14 +72,16 @@ boxplot(lnBySuppOJ,lnBySuppVC,
 rbind(c(mean(lnBySuppOJ),mean(lnBySuppVC)),
       c(sd(lnBySuppOJ), sd(lnBySuppVC)))
 ```
-
 From the Fig.2. and the table above we see the both samples are wide spreaded and overlapped. Let's calculate the 95% confidence interval for $H_0$ hypothesis using function *confidence_interval95* and standard function t.test.
 ```{r}
 confidence_interval95(lnBySuppOJ, lnBySuppVC)
+```
+\pagebreak
+```{r}
 ttest<-t.test(lnBySuppOJ,lnBySuppVC, paired=FALSE, var.equal = TRUE);ttest
 ```
-#Conclusion of comparing tooth growth by supp:
-The p-value is `r ttest$p.value`; it is small, but still greater then $\alpha$ (0.05). It means we **can not reject** $H_0$ hypothesis, i.e we can't say with full confidence the parameter **supp** affects on **len**. 
+#Conclusion of comparing tooth growth by supp:    
+The 95% confidence interval for mean difference is [`r ttest$conf.int[1]`~`r ttest$conf.int[2]`], includes 0 value. The p-value is `r ttest$p.value`; it is small, but still greater then $\alpha$ (0.05). It means we **can not reject** $H_0$ hypothesis, i.e we can't say with full confidence the parameter **supp** affects on **len**. 
 
 #Compare tooth growth by dose:
 We create two samples, - for **dose** values > 1 and < 1 , - then draw a box plot with whiskers to illustrate the distributions of the **len** for each group (see Fig.3).
@@ -88,7 +91,6 @@ lnByDose05 <- tg[tg$dose < 1, ]$len
 boxplot(lnByDose2, lnByDose05,
         main="Fig.3. Boxplot of 'len' distributions by 'dose'.", 
         names=c( "Dose = 2.0", "Dose = 0.5"), col="lightgray")
-
 rbind(c(mean(lnByDose2),mean(lnByDose05)),
       c(sd(lnByDose2), sd(lnByDose05)))
 ```
@@ -97,8 +99,8 @@ Fig.3. ans the table above show the samples are more compact, - their standard d
 confidence_interval95(lnByDose2, lnByDose05)
 ttest<-t.test(lnByDose2,lnByDose05, paired=FALSE, var.equal = TRUE);ttest
 ```
-#Conclusion of comparing tooth growth by dose: 
-The p-value is `r round(ttest$p.value)`, it less then $\alpha$ (0.05). We **have to reject** $H_0$ hypothesis, i.e  for **dose**=2.0 value of **len** is definitly high then for **dose**=0.5. 
+#Conclusion of comparing tooth growth by dose:   
+The 95% confidence interval for mean difference is [`r ttest$conf.int[1]`~`r ttest$conf.int[2]`]. The p-value is `r round(ttest$p.value)`, it less then $\alpha$ (0.05). We **have to reject** $H_0$ hypothesis, i.e  for **dose**=2.0 value of **len** is definitly high then for **dose**=0.5. 
 
 
 -----------------------------------------------------------------------
