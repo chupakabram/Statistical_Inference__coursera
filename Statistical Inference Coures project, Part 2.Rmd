@@ -20,10 +20,8 @@ data(ToothGrowth)
 tg <- ToothGrowth;
 head(tg)
 summary(tg)
-t1<-rbind(c(class(tg$len), class(tg$supp), class(tg$dose)),
-          c(length(unique(tg$len)), length(unique(tg$supp)), length(unique(tg$dose))));
-colnames(t1) <- names(tg);
-rownames(t1) <- c("Class of parameter", "Number of values");t1
+data.frame( sapply(tg, function(x) c(class(x),length(unique(x)))),
+            row.names = c("Class of parameter :  ", "Number of values   :  "))
 ```
 
 #Data analysis
@@ -32,7 +30,7 @@ Parameters summary:
  - **supp** is qualitative(categorical) data, indicate different states, the only possible operation is compare to equality;     
  - **dose** is discrete quantitative data with strong physical relations.     
  
-From the scatterplot on Fig.1. we can see the **len** does not demonstrate clear dependency of **supp** - both groups are distributed widly and they are overlapped. Three groups of **dose** seems to be 'divided' much better. 
+From the scatterplot on Fig.1. we can see the **len** does not demonstrate clear dependency on **supp** - both groups are distributed widly and they are overlapped. Three groups of **dose** seems to be 'divided' much better. 
 
 ```{r, fig.width=8, fig.height=6}
 pairs(tg, main="Fig.1. Scatterplot to illustrate data dependencies.", 
